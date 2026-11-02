@@ -28,16 +28,16 @@
 
 ## 2. 技術選擇
 
-| 項目       | 選擇                                                                | 理由                                   |
-| ---------- | ------------------------------------------------------------------- | -------------------------------------- |
-| 執行環境   | Node.js 24 LTS，以 `.nvmrc` 與 `package.json` 的 `engines` 固定     | 本機與 CI 版本一致                     |
-| 套件鎖定   | commit `package-lock.json`，CI 使用 `npm ci`                        | 可重現的安裝                           |
-| 建置工具   | Vite（`base: "/beat-grid/"`）                                       | 零設定的 TS 支援，產出純靜態檔案       |
-| 語言       | TypeScript（`strict: true`）                                        | 型別保護核心邏輯                       |
-| UI         | 原生 DOM API（不使用框架）                                          | 畫面簡單；減少依賴                     |
-| 測試       | Vitest（核心用 `node` 環境，UI 用 `jsdom`）＋ `@vitest/coverage-v8` | 與 Vite 整合；`core/` 覆蓋率 100% 門檻 |
-| Lint／格式 | ESLint（typescript-eslint）＋ Prettier                              | 一致的程式風格                         |
-| 部署       | GitHub Actions + `actions/deploy-pages`                             | 官方 Pages 流程                        |
+| 項目 | 選擇 | 理由 |
+| --- | --- | --- |
+| 執行環境 | Node.js 24 LTS，以 `.nvmrc` 與 `package.json` 的 `engines` 固定 | 本機與 CI 版本一致 |
+| 套件鎖定 | commit `package-lock.json`，CI 使用 `npm ci` | 可重現的安裝 |
+| 建置工具 | Vite（`base: "/beat-grid/"`） | 零設定的 TS 支援，產出純靜態檔案 |
+| 語言 | TypeScript（`strict: true`） | 型別保護核心邏輯 |
+| UI | 原生 DOM API（不使用框架） | 畫面簡單；減少依賴 |
+| 測試 | Vitest（核心用 `node` 環境，UI 用 `jsdom`）＋ `@vitest/coverage-v8` | 與 Vite 整合；`core/` 覆蓋率 100% 門檻 |
+| Lint／格式 | ESLint（typescript-eslint）＋ Prettier | 一致的程式風格 |
+| 部署 | GitHub Actions + `actions/deploy-pages` | 官方 Pages 流程 |
 
 ---
 
@@ -203,19 +203,19 @@ export const TRACK_IDS = ["kick", "snare", "hihat", "clap"] as const;
 export type TrackId = (typeof TRACK_IDS)[number];
 
 // core/pattern.ts —— 不可變（readonly），所有更新回傳新物件
-export type Steps = readonly boolean[]; // 長度 = STEP_COUNT
+export type Steps = readonly boolean[];              // 長度 = STEP_COUNT
 export type Pattern = Readonly<Record<TrackId, Steps>>;
 
 export function createEmptyPattern(): Pattern;
 export function toggleStep(p: Pattern, track: TrackId, step: number): Pattern;
-export function clearPattern(): Pattern; // 等同 createEmptyPattern
+export function clearPattern(): Pattern;             // 等同 createEmptyPattern
 export function activeTracksAt(p: Pattern, step: number): TrackId[];
 
 // core/tempo.ts
 export const MIN_BPM = 60;
 export const MAX_BPM = 200;
 export const DEFAULT_BPM = 120;
-export function clampBpm(bpm: number): number; // 非有限數字 → DEFAULT_BPM，四捨五入後夾限
+export function clampBpm(bpm: number): number;       // 非有限數字 → DEFAULT_BPM，四捨五入後夾限
 export function stepDurationSeconds(bpm: number): number; // 16 分音符 = 60 / bpm / 4
 
 // core/sequencer-state.ts
@@ -236,13 +236,13 @@ export function reducer(state: AppState, action: Action): AppState;
 // core/scheduler.ts
 export const LOOKAHEAD_SECONDS = 0.1;
 export interface SchedulerState {
-  readonly nextStep: number; // 0..15
-  readonly nextStepTime: number; // 音訊時鐘秒數
+  readonly nextStep: number;       // 0..15
+  readonly nextStepTime: number;   // 音訊時鐘秒數
 }
 export interface ScheduledStep {
   readonly step: number;
   readonly time: number;
-  readonly tracks: readonly TrackId[]; // 該步要發聲的軌（可為空）
+  readonly tracks: readonly TrackId[];   // 該步要發聲的軌（可為空）
 }
 export function startScheduler(startTime: number): SchedulerState;
 export function collectDueSteps(
@@ -252,15 +252,9 @@ export function collectDueSteps(
 
 // core/playhead-queue.ts
 export type PlayheadQueue = readonly { step: number; time: number }[];
-export function enqueue(
-  q: PlayheadQueue,
-  items: readonly { step: number; time: number }[],
-): PlayheadQueue;
-export function currentStepAt(
-  q: PlayheadQueue,
-  now: number,
-): { step: number | null; queue: PlayheadQueue };
-export function clearQueue(): PlayheadQueue; // 回傳空佇列
+export function enqueue(q: PlayheadQueue, items: readonly { step: number; time: number }[]): PlayheadQueue;
+export function currentStepAt(q: PlayheadQueue, now: number): { step: number | null; queue: PlayheadQueue };
+export function clearQueue(): PlayheadQueue;         // 回傳空佇列
 
 // audio/voices/voice.ts
 export interface Voice {
@@ -270,8 +264,8 @@ export type VoiceMap = Partial<Readonly<Record<TrackId, Voice>>>; // 未註冊�
 
 // audio/transport.ts
 export interface Transport {
-  start(): void; // 建立新的 session GainNode、開始 setTimeout 迴圈；已在播放時為 no-op
-  stop(): void; // 清除計時器、disconnect session gain；未播放時為 no-op
+  start(): void;   // 建立新的 session GainNode、開始 setTimeout 迴圈；已在播放時為 no-op
+  stop(): void;    // 清除計時器、disconnect session gain；未播放時為 no-op
 }
 export function createTransport(deps: {
   ctx: BaseAudioContext;
@@ -286,12 +280,12 @@ export function createTransport(deps: {
 
 ## 6. 合成音色設計（kick 由 architect 定案為範本，其餘由 implementer 依範本實作）
 
-| 軌     | 做法                                                                                         |
-| ------ | -------------------------------------------------------------------------------------------- |
-| Kick   | Sine oscillator，頻率從 ~150 Hz 指數下滑到 ~50 Hz（約 0.1 s），增益包絡快速起音、~0.5 s 衰減 |
-| Snare  | 白噪音 → highpass（~1 kHz）＋ triangle 音調成分（~180 Hz），各自短衰減（~0.2 s）             |
-| Hi-hat | 白噪音 → bandpass／highpass（~7–10 kHz），極短衰減（~0.05 s）                                |
-| Clap   | 白噪音 → bandpass（~1.5 kHz），3–4 次相隔 ~10 ms 的短脈衝 + 一段較長尾音                     |
+| 軌 | 做法 |
+| --- | --- |
+| Kick | Sine oscillator，頻率從 ~150 Hz 指數下滑到 ~50 Hz（約 0.1 s），增益包絡快速起音、~0.5 s 衰減 |
+| Snare | 白噪音 → highpass（~1 kHz）＋ triangle 音調成分（~180 Hz），各自短衰減（~0.2 s） |
+| Hi-hat | 白噪音 → bandpass／highpass（~7–10 kHz），極短衰減（~0.05 s） |
+| Clap | 白噪音 → bandpass（~1.5 kHz），3–4 次相隔 ~10 ms 的短脈衝 + 一段較長尾音 |
 
 **kick 範本（T2.4）需確立、其他 voice 必須沿用的慣例：**
 
@@ -306,15 +300,15 @@ export function createTransport(deps: {
 
 ## 7. 測試策略
 
-| 層                      | 測試方式                                                                                                         |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `core/*`                | 純單元測試，Vitest `node` 環境，**覆蓋率門檻 100%**（lines／branches／functions／statements），CI 不達標即失敗   |
-| `audio/voices/*`        | 以 fake `AudioContext`（記錄建立的節點與排程呼叫）驗證：在正確時間 `start`／`stop`、包絡 ramp 目標正確           |
-| `audio/transport.ts`    | 以 fake timer（`vi.useFakeTimers()`）＋ fake clock 驗證：tick 時呼叫 voice、stop 後不再排程、session gain 被斷開 |
-| `audio/audio-unlock.ts` | fake `AudioContext` 工廠，驗證冪等、`resume()`、只綁定 `click`                                                   |
-| `ui/*`                  | `jsdom`：渲染 64 個格子、點擊派送正確 action、高亮狀態正確                                                       |
-| 部署                    | CI 在 build 後執行 `scripts/check-base-path.mjs`，確認 `dist/index.html` 引用的資源路徑都以 `/beat-grid/` 開頭   |
-| 手動                    | 桌機 Chrome／Firefox／Safari、iPhone Safari 實機聽感、時間穩定度、320 px 寬無橫向捲動                            |
+| 層 | 測試方式 |
+| --- | --- |
+| `core/*` | 純單元測試，Vitest `node` 環境，**覆蓋率門檻 100%**（lines／branches／functions／statements），CI 不達標即失敗 |
+| `audio/voices/*` | 以 fake `AudioContext`（記錄建立的節點與排程呼叫）驗證：在正確時間 `start`／`stop`、包絡 ramp 目標正確 |
+| `audio/transport.ts` | 以 fake timer（`vi.useFakeTimers()`）＋ fake clock 驗證：tick 時呼叫 voice、stop 後不再排程、session gain 被斷開 |
+| `audio/audio-unlock.ts` | fake `AudioContext` 工廠，驗證冪等、`resume()`、只綁定 `click` |
+| `ui/*` | `jsdom`：渲染 64 個格子、點擊派送正確 action、高亮狀態正確 |
+| 部署 | CI 在 build 後執行 `scripts/check-base-path.mjs`，確認 `dist/index.html` 引用的資源路徑都以 `/beat-grid/` 開頭 |
+| 手動 | 桌機 Chrome／Firefox／Safari、iPhone Safari 實機聽感、時間穩定度、320 px 寬無橫向捲動 |
 
 TDD 循環：紅（寫失敗測試）→ 綠（最小實作）→ 重構。每個任務完成時 `npm run lint`、`npm run typecheck`、`npm run test:coverage`、`npm run build` 都必須通過。
 
@@ -322,11 +316,11 @@ TDD 循環：紅（寫失敗測試）→ 綠（最小實作）→ 重構。每�
 
 ## 8. 代理分工
 
-| 代理            | 模型   | 負責                                                                                                                                 |
-| --------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------ |
-| **architect**   | opus   | 困難任務：lookahead scheduler、transport、kick 音色範本、iOS 音訊解鎖、最終 code review（含 snare／clap 審查）                       |
+| 代理 | 模型 | 負責 |
+| --- | --- | --- |
+| **architect** | opus | 困難任務：lookahead scheduler、transport、kick 音色範本、iOS 音訊解鎖、最終 code review（含 snare／clap 審查） |
 | **implementer** | sonnet | 中等任務：pattern／state／tempo 純函式、noise／voice 介面／master gain、依 kick 範本實作 snare／hi-hat／clap、UI、store、CI、M1 組裝 |
-| **runner**      | haiku  | 簡單／重複任務：專案骨架設定、執行 test/lint/build、修正格式與型別小錯誤、更新 README、回報結果                                      |
+| **runner** | haiku | 簡單／重複任務：專案骨架設定、執行 test/lint/build、修正格式與型別小錯誤、更新 README、回報結果 |
 
 分派規則詳見 `CLAUDE.md`。
 
@@ -437,15 +431,15 @@ TDD 循環：紅（寫失敗測試）→ 綠（最小實作）→ 重構。每�
 
 ## 10. 風險與對策
 
-| 風險                                          | 對策                                                                                             |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| 風險 | 對策 |
+| --- | --- |
 | 背景分頁 `setTimeout` 被節流 → 漏拍或補播爆量 | `nextStepTime < now - lookahead` 時依 §3 規則重新對齊、跳過的步不補播；lookahead 100 ms 提供緩衝 |
-| iOS 靜音開關導致 Web Audio 無聲               | README 註明；（選做）播放無聲 `<audio>` 技巧另列為後續任務                                       |
-| iOS 不承認觸控事件為解鎖手勢                  | 只用 `click`，並在 click handler 內同步建立／恢復 context                                        |
-| 停止後仍有已排程的聲音或尾音                  | 每次播放使用獨立 session `GainNode`，stop 時 `disconnect()`                                      |
-| session gain 斷開瞬間爆音                     | M1 實機試聽確認；若有，加入 ≤ 10 ms 淡出                                                         |
-| 快速連點播放／停止造成重複計時器              | transport 內部單一 timer id，`start` 為冪等；main 中以 `isPlaying` 狀態驅動                      |
-| 合成節點累積造成記憶體壓力                    | voice 不保存節點參照；session gain 斷開後整串可被回收                                            |
-| GitHub Pages 子路徑資源 404                   | `base: "/beat-grid/"`；CI build 後以 `check:base` 檢查 `dist/index.html`                         |
-| 本機與 CI 環境不一致                          | `.nvmrc` + `engines` 固定 Node 24；commit `package-lock.json`，CI 用 `npm ci`                    |
-| 依範本實作的 voice 品質不一                   | kick 範本先在 M1 實機驗證；snare／clap 在 T4.4 由 architect 審查                                 |
+| iOS 靜音開關導致 Web Audio 無聲 | README 註明；（選做）播放無聲 `<audio>` 技巧另列為後續任務 |
+| iOS 不承認觸控事件為解鎖手勢 | 只用 `click`，並在 click handler 內同步建立／恢復 context |
+| 停止後仍有已排程的聲音或尾音 | 每次播放使用獨立 session `GainNode`，stop 時 `disconnect()` |
+| session gain 斷開瞬間爆音 | M1 實機試聽確認；若有，加入 ≤ 10 ms 淡出 |
+| 快速連點播放／停止造成重複計時器 | transport 內部單一 timer id，`start` 為冪等；main 中以 `isPlaying` 狀態驅動 |
+| 合成節點累積造成記憶體壓力 | voice 不保存節點參照；session gain 斷開後整串可被回收 |
+| GitHub Pages 子路徑資源 404 | `base: "/beat-grid/"`；CI build 後以 `check:base` 檢查 `dist/index.html` |
+| 本機與 CI 環境不一致 | `.nvmrc` + `engines` 固定 Node 24；commit `package-lock.json`，CI 用 `npm ci` |
+| 依範本實作的 voice 品質不一 | kick 範本先在 M1 實機驗證；snare／clap 在 T4.4 由 architect 審查 |

@@ -38,7 +38,7 @@ Dependency rules (enforce in review):
 
 Key mechanisms:
 
-- **Lookahead scheduler**: a `setTimeout` loop (~25 ms) only _wakes up_ the scheduler; `core/scheduler.ts#collectDueSteps` computes which steps fall in `[now, now + lookahead)` and the voices are triggered at exact `AudioContext` times. Never trigger sounds directly from `setInterval`/`setTimeout`.
+- **Lookahead scheduler**: a `setTimeout` loop (~25 ms) only *wakes up* the scheduler; `core/scheduler.ts#collectDueSteps` computes which steps fall in `[now, now + lookahead)` and the voices are triggered at exact `AudioContext` times. Never trigger sounds directly from `setInterval`/`setTimeout`.
 - **Re-alignment**: if `nextStepTime < now - lookahead` (e.g. a throttled background tab), the scheduler skips `k = ceil((now - nextStepTime) / stepDuration)` steps without playing them, so `nextStep = (nextStep + k) mod 16` and `now ≤ nextStepTime < now + stepDuration`. Smaller lateness is played normally. See `docs/PLAN.md` §3.
 - **Playhead**: scheduled `{ step, time }` pairs go into a queue; a `requestAnimationFrame` loop asks `core/playhead-queue.ts#currentStepAt(queue, ctx.currentTime)` which step to highlight.
 - **Stopping**: every playback gets its own session `GainNode` (voices → session gain → master). `transport.stop()` clears the timer and disconnects the session gain so no scheduled notes or tails ring on; the app then clears the playhead queue and sets the highlight to `null`.
@@ -98,16 +98,16 @@ A task is **done** only when `npm run lint && npm run typecheck && npm run test:
 
 ### Naming
 
-| Kind                  | Convention                            | Example                              |
-| --------------------- | ------------------------------------- | ------------------------------------ |
-| Files                 | `kebab-case.ts`                       | `sequencer-state.ts`, `grid-view.ts` |
-| Tests                 | `<file>.test.ts`                      | `scheduler.test.ts`                  |
-| Types / interfaces    | `PascalCase`, no `I` prefix           | `Pattern`, `SchedulerState`, `Voice` |
-| Functions / variables | `camelCase`, verb-first for functions | `toggleStep`, `collectDueSteps`      |
-| Constants             | `UPPER_SNAKE_CASE`                    | `STEP_COUNT`, `MIN_BPM`              |
-| Booleans              | `is` / `has` / `should` prefix        | `isPlaying`                          |
-| Units in names        | suffix when ambiguous                 | `durationSeconds`, `lookaheadMs`     |
-| Action types          | `camelCase` string literals           | `"toggleStep"`, `"clearAll"`         |
+| Kind | Convention | Example |
+| --- | --- | --- |
+| Files | `kebab-case.ts` | `sequencer-state.ts`, `grid-view.ts` |
+| Tests | `<file>.test.ts` | `scheduler.test.ts` |
+| Types / interfaces | `PascalCase`, no `I` prefix | `Pattern`, `SchedulerState`, `Voice` |
+| Functions / variables | `camelCase`, verb-first for functions | `toggleStep`, `collectDueSteps` |
+| Constants | `UPPER_SNAKE_CASE` | `STEP_COUNT`, `MIN_BPM` |
+| Booleans | `is` / `has` / `should` prefix | `isPlaying` |
+| Units in names | suffix when ambiguous | `durationSeconds`, `lookaheadMs` |
+| Action types | `camelCase` string literals | `"toggleStep"`, `"clearAll"` |
 
 ### Git
 
@@ -118,19 +118,19 @@ A task is **done** only when `npm run lint && npm run typecheck && npm run test:
 
 Every task in `docs/PLAN.md` is labelled **簡單 (easy)**, **中等 (medium)** or **困難 (hard)** and names an agent. The main session acts as coordinator: it picks the next task, delegates it, and verifies the result.
 
-| Difficulty    | Agent         | Model  | Typical work                                                                                                                                                                                                                                    |
-| ------------- | ------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 困難 / hard   | `architect`   | opus   | Lookahead scheduler & transport, the kick voice as the synthesis template, AudioContext/iOS unlock, cross-module design decisions, final code review                                                                                            |
+| Difficulty | Agent | Model | Typical work |
+| --- | --- | --- | --- |
+| 困難 / hard | `architect` | opus | Lookahead scheduler & transport, the kick voice as the synthesis template, AudioContext/iOS unlock, cross-module design decisions, final code review |
 | 中等 / medium | `implementer` | sonnet | Pure-function modules (pattern, tempo, state, playhead queue), noise/voice interface/master gain, snare/hi-hat/clap voices following the kick template, store, UI grid and controls, CI workflow, milestone M1 wiring, general TDD feature work |
-| 簡單 / easy   | `runner`      | haiku  | Scaffolding/config, running test/lint/typecheck/build, fixing formatting/type/lint nits, updating README, reporting results                                                                                                                     |
+| 簡單 / easy | `runner` | haiku | Scaffolding/config, running test/lint/typecheck/build, fixing formatting/type/lint nits, updating README, reporting results |
 
 Rules:
 
 1. **Use the label in `docs/PLAN.md`.** If a task has no label, classify it with the criteria below before delegating.
 2. **Classification criteria**
-   - _Hard_: timing/concurrency correctness, audio DSP/sound design, browser-specific audio quirks, anything changing module boundaries or public interfaces across layers, or work that is hard to verify with unit tests alone.
-   - _Medium_: a new behaviour inside one module with clear inputs/outputs, implemented test-first; UI that follows an existing pattern.
-   - _Easy_: mechanical or repetitive work with no design decisions; result is verifiable by a command exiting 0.
+   - *Hard*: timing/concurrency correctness, audio DSP/sound design, browser-specific audio quirks, anything changing module boundaries or public interfaces across layers, or work that is hard to verify with unit tests alone.
+   - *Medium*: a new behaviour inside one module with clear inputs/outputs, implemented test-first; UI that follows an existing pattern.
+   - *Easy*: mechanical or repetitive work with no design decisions; result is verifiable by a command exiting 0.
 3. **Escalate, don't stretch.** If `runner` hits anything beyond a mechanical fix (failing logic test, unclear requirement), it stops and reports; the coordinator re-assigns to `implementer`. If `implementer` needs to change an interface in `core/` used by `audio/`, or touches timing logic, it escalates to `architect`.
 4. **Downgrade is allowed** for clearly mechanical sub-steps of a bigger task (e.g. `architect` designs the voice parameters, `runner` reruns the suite).
 5. **After every delegated task**, run `runner` (or the commands directly) to confirm lint/typecheck/test:coverage/build/check:base are green before marking the task done.

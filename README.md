@@ -41,16 +41,16 @@ npm run dev
 
 其他指令：
 
-| 指令                    | 說明                                            |
-| ----------------------- | ----------------------------------------------- |
-| `npm test`              | 執行單元測試（Vitest）                          |
-| `npm run test:coverage` | 測試＋覆蓋率（`src/core/` 需 100%）             |
-| `npm run test:watch`    | 監看模式，TDD 時使用                            |
-| `npm run lint`          | ESLint 檢查                                     |
-| `npm run typecheck`     | TypeScript 型別檢查                             |
-| `npm run build`         | 產出 `dist/`                                    |
-| `npm run check:base`    | 檢查 `dist/index.html` 資源路徑含 `/beat-grid/` |
-| `npm run preview`       | 本機預覽 build 結果                             |
+| 指令 | 說明 |
+| --- | --- |
+| `npm test` | 執行單元測試（Vitest） |
+| `npm run test:coverage` | 測試＋覆蓋率（`src/core/` 需 100%） |
+| `npm run test:watch` | 監看模式，TDD 時使用 |
+| `npm run lint` | ESLint 檢查 |
+| `npm run typecheck` | TypeScript 型別檢查 |
+| `npm run build` | 產出 `dist/` |
+| `npm run check:base` | 檢查 `dist/index.html` 資源路徑含 `/beat-grid/` |
+| `npm run preview` | 本機預覽 build 結果 |
 
 ## 部署到 GitHub Pages
 
