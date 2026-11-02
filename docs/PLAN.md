@@ -363,7 +363,7 @@ TDD 循環：紅（寫失敗測試）→ 綠（最小實作）→ 重構。每�
     - 嚴重落後（`nextStepTime < now - lookahead`）：依 §3「落後與重新對齊規則」跳過 `k = ceil((now - nextStepTime) / d)` 步，被跳過的步不輸出；重新對齊後 `nextStep = (原 nextStep + k) mod 16`、`now ≤ nextStepTime < now + d`
       - 範例：120 BPM（d = 0.125），`{ nextStep: 3, nextStepTime: 1.0 }`、`now = 2.0` → `k = 8`，重新對齊為 `{ nextStep: 11, nextStepTime: 2.0 }`，接著輸出第 11 步（time 2.0）
     - 跨越 16 步邊界的重新對齊（例如 `nextStep = 14`、`k = 5` → `nextStep = 3`）
-- [ ] **T1.6** `core/playhead-queue.ts`：`enqueue`、`currentStepAt`（丟棄已過期項目）、`clearQueue` — 中等 — implementer
+- [x] **T1.6** `core/playhead-queue.ts`：`enqueue`、`currentStepAt`（丟棄已過期項目）、`clearQueue` — 中等 — implementer
   - 驗收：`now` 早於第一項時回傳 `null`；`now` 介於兩項之間時回傳較早那一項並丟棄更早的項目；`clearQueue()` 後 `currentStepAt` 回傳 `null`；輸入佇列不被修改
 
 ### 階段 2：音訊層 → 里程碑 M1
