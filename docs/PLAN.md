@@ -370,7 +370,7 @@ TDD 循環：紅（寫失敗測試）→ 綠（最小實作）→ 重構。每�
 
 - [x] **T2.1** 測試用 fake `AudioContext`（`src/audio/testing/fake-audio-context.ts`），記錄節點、連線、`start/stop`、`disconnect`、`AudioParam` 排程呼叫 — 中等 — implementer
   - 驗收：有自身的單元測試；可手動推進 `currentTime`
-- [ ] **T2.2** `audio/audio-unlock.ts`：`ensureAudioContext()` 延遲建立、`resume()`、iOS 無聲 buffer 解鎖、冪等 — 困難 — architect
+- [x] **T2.2** `audio/audio-unlock.ts`：`ensureAudioContext()` 延遲建立、`resume()`、iOS 無聲 buffer 解鎖、冪等 — 困難 — architect
   - 驗收：
     - 頁面載入時不建立 `AudioContext`
     - **解鎖只綁定 `click` 事件**；程式碼與測試中不出現 `pointerdown`、`touchstart`、`touchend` 監聽（測試以 spy `addEventListener` 驗證）
