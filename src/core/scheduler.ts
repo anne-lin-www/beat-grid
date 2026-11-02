@@ -19,6 +19,22 @@ export function startScheduler(startTime: number): SchedulerState {
   return { nextStep: 0, nextStepTime: startTime };
 }
 
+function realign(
+  state: SchedulerState,
+  now: number,
+  lookahead: number,
+  stepDuration: number,
+): SchedulerState {
+  if (state.nextStepTime >= now - lookahead) {
+    return state;
+  }
+  const skipped = Math.ceil((now - state.nextStepTime) / stepDuration);
+  return {
+    nextStep: (state.nextStep + skipped) % STEP_COUNT,
+    nextStepTime: state.nextStepTime + skipped * stepDuration,
+  };
+}
+
 export function collectDueSteps(
   state: SchedulerState,
   input: { now: number; lookahead: number; bpm: number; pattern: Pattern },
@@ -27,7 +43,7 @@ export function collectDueSteps(
   const stepDuration = stepDurationSeconds(bpm);
   const horizon = now + lookahead;
   const due: ScheduledStep[] = [];
-  let { nextStep, nextStepTime } = state;
+  let { nextStep, nextStepTime } = realign(state, now, lookahead, stepDuration);
 
   while (nextStepTime < horizon) {
     due.push({

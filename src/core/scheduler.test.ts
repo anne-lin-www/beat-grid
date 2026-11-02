@@ -166,3 +166,53 @@ describe("collectDueSteps", () => {
     expect(state).toEqual({ nextStep: 0, nextStepTime: 0 });
   });
 });
+
+describe("collectDueSteps re-alignment after severe lateness", () => {
+  it("skips k = ceil((now - nextStepTime) / d) steps (PLAN §9 example)", () => {
+    const state: SchedulerState = { nextStep: 3, nextStepTime: 1.0 };
+
+    // 120 BPM, d = 0.125, now = 2.0 → k = 8 → { 11, 2.0 }
+    const result = collectDueSteps(state, input(2.0));
+
+    expect(result.due.map((s) => [s.step, s.time])).toEqual([[11, 2.0]]);
+    expect(result.state).toEqual({ nextStep: 12, nextStepTime: 2.125 });
+  });
+
+  it("re-aligns across the 16-step boundary (nextStep 14, k = 5 → 3)", () => {
+    const state: SchedulerState = { nextStep: 14, nextStepTime: 1.0 };
+
+    // (1.5625 - 1.0) / 0.125 = 4.5 → k = 5 → { 3, 1.625 }
+    const result = collectDueSteps(state, input(1.5625));
+
+    expect(result.due.map((s) => [s.step, s.time])).toEqual([[3, 1.625]]);
+  });
+
+  it("lands on now <= nextStepTime < now + d, keeping the beat grid phase", () => {
+    const state: SchedulerState = { nextStep: 0, nextStepTime: 0 };
+    const now = 10.03;
+
+    // lookahead 0 isolates the re-aligned state: nothing is collected
+    const result = collectDueSteps(state, input(now, 120, 0));
+
+    expect(result.due).toEqual([]);
+    expect(result.state.nextStepTime).toBeGreaterThanOrEqual(now);
+    expect(result.state.nextStepTime).toBeLessThan(now + 0.125);
+    expect(result.state).toEqual({ nextStep: 81 % 16, nextStepTime: 10.125 });
+  });
+
+  it("does not emit the skipped steps", () => {
+    const pattern = createEmptyPattern();
+    const allKicks = Array.from({ length: 16 }, (_, i) => i).reduce(
+      (p, step) => toggleStep(p, "kick", step),
+      pattern,
+    );
+
+    const result = collectDueSteps(
+      { nextStep: 0, nextStepTime: 0 },
+      { now: 5.0, lookahead: LOOKAHEAD_SECONDS, bpm: 120, pattern: allKicks },
+    );
+
+    // k = 40 → step 8 at 5.0; only one step fits in [5.0, 5.1)
+    expect(result.due).toEqual([{ step: 8, time: 5.0, tracks: ["kick"] }]);
+  });
+});
