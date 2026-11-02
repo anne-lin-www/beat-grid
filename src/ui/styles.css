@@ -1,0 +1,25 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 16px;
+  font-family: system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+.play-button {
+  min-width: 96px;
+  min-height: 44px;
+  padding: 8px 20px;
+  font: inherit;
+  font-size: 1.125rem;
+}
+
+.error-message {
+  color: #b00020;
+  overflow-wrap: anywhere;
+}
