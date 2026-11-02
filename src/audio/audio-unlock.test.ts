@@ -6,6 +6,9 @@ import {
   type FakeAudioContext,
 } from "./testing/fake-audio-context";
 
+/** Plan §3: unlock must never bind these; listed only for a negative assertion. */
+const FORBIDDEN_UNLOCK_EVENTS = ["pointerdown", "touchstart", "touchend"];
+
 function setup() {
   const fakes: FakeAudioContext[] = [];
   const createContext = vi.fn(() => {
@@ -67,5 +70,51 @@ describe("createAudioUnlock", () => {
     await unlock.ensureAudioContext();
     expect(fakes[0]?.resumeCalls).toBe(1);
     expect(fakes[0]?.nodesOfType("bufferSource")).toHaveLength(1);
+  });
+
+  it.each(["suspended", "interrupted"] as const)(
+    "calls resume() again synchronously when the context is %s on a later call",
+    async (state) => {
+      const { fakes, unlock } = setup();
+      await unlock.ensureAudioContext();
+      const fake = fakes[0];
+      if (fake === undefined) throw new Error("context not created");
+      fake.state = state;
+
+      const pending = unlock.ensureAudioContext();
+
+      expect(fake.resumeCalls).toBe(2);
+      expect(fake.nodesOfType("bufferSource")).toHaveLength(2);
+      expect(await pending).toBe(fake);
+      expect(fake.state).toBe("running");
+    },
+  );
+
+  it("re-resumes on the next call after a visibilitychange, even if state reads running", async () => {
+    const { fakes, visibilityTarget, unlock } = setup();
+    await unlock.ensureAudioContext();
+    const fake = fakes[0];
+
+    visibilityTarget.dispatchEvent(new Event("visibilitychange"));
+    expect(fake?.resumeCalls).toBe(1); // nothing happens outside a click
+
+    void unlock.ensureAudioContext();
+    expect(fake?.resumeCalls).toBe(2);
+    expect(fake?.nodesOfType("bufferSource")).toHaveLength(2);
+
+    await unlock.ensureAudioContext();
+    expect(fake?.resumeCalls).toBe(2); // the mark is consumed once
+  });
+
+  it("listens only for visibilitychange, once, and never for touch or pointer events", async () => {
+    const { addEventListenerSpy, unlock } = setup();
+    await unlock.ensureAudioContext();
+    await unlock.ensureAudioContext();
+
+    const eventTypes = addEventListenerSpy.mock.calls.map(([type]) => type);
+    expect(eventTypes).toEqual(["visibilitychange"]);
+    for (const forbidden of FORBIDDEN_UNLOCK_EVENTS) {
+      expect(eventTypes).not.toContain(forbidden);
+    }
   });
 });

@@ -37,13 +37,22 @@ function playSilentBuffer(ctx: AudioContext): void {
 
 export function createAudioUnlock(deps: AudioUnlockDeps): AudioUnlock {
   let context: AudioContext | null = null;
+  // Set by visibilitychange: after an iOS background interruption the context
+  // may report "running" yet be silent, so the next click resumes regardless.
+  let shouldResume = false;
+
+  const markForResume = (): void => {
+    shouldResume = true;
+  };
 
   const ensureAudioContext = (): Promise<AudioContext> => {
     if (context === null) {
       context = deps.createContext();
-    } else if (context.state === "running") {
+      deps.visibilityTarget.addEventListener("visibilitychange", markForResume);
+    } else if (context.state === "running" && !shouldResume) {
       return Promise.resolve(context);
     }
+    shouldResume = false;
     const ctx = context;
     const resumed = ctx.resume();
     playSilentBuffer(ctx);
