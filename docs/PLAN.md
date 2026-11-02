@@ -377,7 +377,7 @@ TDD 循環：紅（寫失敗測試）→ 綠（最小實作）→ 重構。每�
     - 建立 context、`resume()`、無聲 buffer `start()` 在第一個 `await` 前同步完成
     - 重複呼叫回傳同一個 context，不重複建立
     - `suspended` 狀態下再次 click 會呼叫 `resume()`
-- [ ] **T2.3** `audio/voices/noise.ts` + `voice.ts` 介面 + `audio/master.ts` master gain — 中等 — implementer
+- [x] **T2.3** `audio/voices/noise.ts` + `voice.ts` 介面 + `audio/master.ts` master gain — 中等 — implementer
   - 驗收：同一個 context 呼叫兩次 `getNoiseBuffer` 回傳同一個 buffer；master gain 預設 0.8 並接到 `ctx.destination`
 - [ ] **T2.4** `audio/voices/kick.ts`（**範本**，確立 §6 慣例）— 困難 — architect
   - 驗收：以 fake ctx 驗證 oscillator 頻率下滑排程、增益 ramp 到 0.001、`start(time)`／`stop` 時間正確、只連到傳入的 destination；在 PR 中說明其他 voice 應沿用的寫法
