@@ -339,7 +339,7 @@ TDD 循環：紅（寫失敗測試）→ 綠（最小實作）→ 重構。每�
   - 驗收：`npm test` 能跑一個 placeholder 測試；`npm run test:coverage` 對 `src/core/**` 設 lines／branches／functions／statements 皆 100% 門檻，未達標時指令以非 0 結束
 - [x] **T0.3** ESLint + Prettier 設定，加入 `lint`、`format`、`typecheck` scripts — 簡單 — runner
   - 驗收：`npm run lint`、`npm run typecheck` 通過
-- [ ] **T0.4** GitHub Actions `deploy.yml` 與 `scripts/check-base-path.mjs` — 中等 — implementer
+- [x] **T0.4** GitHub Actions `deploy.yml` 與 `scripts/check-base-path.mjs` — 中等 — implementer
   - 流程：push `main` → `actions/setup-node`（`node-version-file: .nvmrc`、npm cache）→ `npm ci` → lint → typecheck → `npm run test:coverage` → build → `npm run check:base` → upload `dist` → deploy-pages
   - 驗收：PR 上只跑到 `check:base`，不部署；覆蓋率未達門檻時 CI 失敗；`check:base` 在 `dist/index.html` 中任何 `src`／`href` 資源路徑不以 `/beat-grid/` 開頭時失敗（以測試或刻意改壞 base 的方式驗證過）
 
