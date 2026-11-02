@@ -216,3 +216,38 @@ describe("collectDueSteps re-alignment after severe lateness", () => {
     expect(result.due).toEqual([{ step: 8, time: 5.0, tracks: ["kick"] }]);
   });
 });
+
+describe("collectDueSteps re-alignment floating-point boundaries", () => {
+  it("does not over-skip when (now - nextStepTime) / d is an integer plus rounding error", () => {
+    // Mathematically (1.1 - 0.6) / 0.125 = 4, but in IEEE-754 it evaluates
+    // to 4.000000000000001; a naive ceil would give k = 5 and drop the
+    // step that is due exactly at now.
+    expect((1.1 - 0.6) / 0.125).toBeGreaterThan(4);
+    const state: SchedulerState = { nextStep: 0, nextStepTime: 0.6 };
+
+    const result = collectDueSteps(state, input(1.1));
+
+    expect(result.due.map((s) => [s.step, s.time])).toEqual([[4, 1.1]]);
+  });
+
+  it("still skips the extra step when lateness genuinely exceeds k steps", () => {
+    const state: SchedulerState = { nextStep: 0, nextStepTime: 0.6 };
+
+    // (1.13 - 0.6) / 0.125 = 4.24 → k = 5 → step 5 at 1.225
+    const result = collectDueSteps(state, input(1.13));
+
+    expect(result.state.nextStep).toBe(6);
+    expect(result.due.map((s) => s.step)).toEqual([5]);
+  });
+
+  it("always skips at least one step when severely late (k >= 1)", () => {
+    // lookahead 0 makes any lateness "severe"; lateness far below the
+    // tolerance still re-aligns by exactly one step
+    const state: SchedulerState = { nextStep: 7, nextStepTime: 2 - 1e-12 };
+
+    const result = collectDueSteps(state, input(2, 120, 0));
+
+    expect(result.state.nextStep).toBe(8);
+    expect(result.state.nextStepTime).toBeCloseTo(2.125, 9);
+  });
+});
