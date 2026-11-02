@@ -349,7 +349,7 @@ TDD 循環：紅（寫失敗測試）→ 綠（最小實作）→ 重構。每�
   - 驗收：測試確認 `STEP_COUNT === 16`、`TRACK_IDS` 依序為 kick／snare／hihat／clap 且長度 4
 - [x] **T1.2** `core/pattern.ts`：`createEmptyPattern`、`toggleStep`（含越界 step 防護、不可變性）、`clearPattern`、`activeTracksAt` — 中等 — implementer
   - 驗收：測試涵蓋切換兩次還原、原物件未被修改、越界（-1、16、小數）不改變、`activeTracksAt` 依 `TRACK_IDS` 順序回傳
-- [ ] **T1.3** `core/tempo.ts`：`clampBpm`、`stepDurationSeconds` — 簡單 — implementer
+- [x] **T1.3** `core/tempo.ts`：`clampBpm`、`stepDurationSeconds` — 簡單 — implementer
   - 驗收：`clampBpm` 對 59→60、201→200、120.6→121、`NaN`／`Infinity`→120 有測試；`stepDurationSeconds(120) === 0.125`
 - [ ] **T1.4** `core/sequencer-state.ts`：`initialState`、`reducer` 處理五種 action — 中等 — implementer
   - 驗收：每個 action 都有測試；重複 play／stop 為 no-op（回傳同一物件）；`setBpm` 經 `clampBpm` 夾限
