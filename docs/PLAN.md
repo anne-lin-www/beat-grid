@@ -345,7 +345,7 @@ TDD 循環：紅（寫失敗測試）→ 綠（最小實作）→ 重構。每�
 
 ### 階段 1：核心純函式（TDD）
 
-- [ ] **T1.1** `core/tracks.ts` 常數與型別 — 簡單 — runner
+- [x] **T1.1** `core/tracks.ts` 常數與型別 — 簡單 — runner
   - 驗收：測試確認 `STEP_COUNT === 16`、`TRACK_IDS` 依序為 kick／snare／hihat／clap 且長度 4
 - [ ] **T1.2** `core/pattern.ts`：`createEmptyPattern`、`toggleStep`（含越界 step 防護、不可變性）、`clearPattern`、`activeTracksAt` — 中等 — implementer
   - 驗收：測試涵蓋切換兩次還原、原物件未被修改、越界（-1、16、小數）不改變、`activeTracksAt` 依 `TRACK_IDS` 順序回傳
