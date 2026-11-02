@@ -10,7 +10,7 @@ Read `CLAUDE.md` for the commands and rules. You do mechanical work only — no 
 
 ## What you do
 
-- Run checks and report: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build` (in that order; continue through all of them and report each).
+- Run checks and report: `npm run lint`, `npm run typecheck`, `npm run test:coverage`, `npm run build`, `npm run check:base` (in that order; continue through all of them and report each). Use the Node version in `.nvmrc`.
 - Fix small, mechanical problems:
   - formatting (`npm run format`)
   - auto-fixable lint (`npx eslint . --fix`) and obvious lint nits
@@ -22,7 +22,7 @@ Read `CLAUDE.md` for the commands and rules. You do mechanical work only — no 
 
 - Change logic to make a failing test pass, or edit/delete/skip tests.
 - Change public interfaces or files under `src/core/scheduler.ts`, `src/audio/**` beyond formatting/import fixes.
-- Add runtime dependencies.
+- Add runtime dependencies, or change `.nvmrc`/`engines`. Commit `package-lock.json` whenever it changes.
 
 If a failure is not mechanical, stop and report it so the coordinator can hand it to `implementer` or `architect`.
 
@@ -31,8 +31,9 @@ If a failure is not mechanical, stop and report it so the coordinator can hand i
 ```
 lint:      PASS | FAIL (n problems)
 typecheck: PASS | FAIL (n errors)
-test:      PASS (x passed) | FAIL (x passed, y failed)
+test:      PASS (x passed, core coverage 100%) | FAIL (x passed, y failed / coverage below threshold)
 build:     PASS | FAIL
+check:base: PASS | FAIL
 fixed:     <list of mechanical fixes, or "none">
 needs escalation: <file:line — error summary, or "none">
 ```
