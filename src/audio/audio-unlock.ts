@@ -37,6 +37,7 @@ function playSilentBuffer(ctx: AudioContext): void {
 
 export function createAudioUnlock(deps: AudioUnlockDeps): AudioUnlock {
   let context: AudioContext | null = null;
+  let isListeningForVisibility = false;
   // Set by visibilitychange: after an iOS background interruption the context
   // may report "running" yet be silent, so the next click resumes regardless.
   let shouldResume = false;
@@ -45,18 +46,46 @@ export function createAudioUnlock(deps: AudioUnlockDeps): AudioUnlock {
     shouldResume = true;
   };
 
-  const ensureAudioContext = (): Promise<AudioContext> => {
-    if (context === null) {
+  /** Returns a usable context, creating one if there is none or it was closed. */
+  const obtainContext = (): AudioContext => {
+    if (context === null || context.state === "closed") {
+      // Assigned only after createContext() returns, so a throw leaves no
+      // half-created state behind and the next click simply retries.
       context = deps.createContext();
+      shouldResume = true;
+    }
+    if (!isListeningForVisibility) {
       deps.visibilityTarget.addEventListener("visibilitychange", markForResume);
-    } else if (context.state === "running" && !shouldResume) {
-      return Promise.resolve(context);
+      isListeningForVisibility = true;
+    }
+    return context;
+  };
+
+  /** Everything here runs synchronously, inside the caller's click gesture. */
+  const unlockSynchronously = (): Promise<AudioContext> => {
+    const ctx = obtainContext();
+    if (ctx.state === "running" && !shouldResume) {
+      return Promise.resolve(ctx);
     }
     shouldResume = false;
-    const ctx = context;
     const resumed = ctx.resume();
     playSilentBuffer(ctx);
-    return resumed.then(() => ctx);
+    return resumed.then(
+      () => ctx,
+      (error: unknown) => {
+        // The unlock did not take; make sure the next click tries again.
+        shouldResume = true;
+        throw error;
+      },
+    );
+  };
+
+  const ensureAudioContext = (): Promise<AudioContext> => {
+    try {
+      return unlockSynchronously();
+    } catch (error: unknown) {
+      return Promise.reject(error);
+    }
   };
 
   return { ensureAudioContext };

@@ -117,4 +117,84 @@ describe("createAudioUnlock", () => {
       expect(eventTypes).not.toContain(forbidden);
     }
   });
+
+  it("rejects (rather than throwing) when creation fails, and retries creation on the next call", async () => {
+    const { fakes, createContext, addEventListenerSpy, unlock } = setup();
+    const error = new Error("AudioContext not allowed");
+    createContext.mockImplementationOnce(() => {
+      throw error;
+    });
+
+    await expect(unlock.ensureAudioContext()).rejects.toBe(error);
+    expect(addEventListenerSpy).not.toHaveBeenCalled();
+
+    const ctx = await unlock.ensureAudioContext();
+    expect(ctx).toBe(fakes[0]);
+    expect(createContext).toHaveBeenCalledTimes(2);
+  });
+
+  it("rejects when resume() rejects, keeps the context and resumes again on the next call", async () => {
+    const fake = createFakeAudioContext();
+    const error = new Error("resume refused");
+    const resume = fake.resume;
+    fake.resume = vi.fn(() => Promise.reject(error));
+    const createContext = vi.fn(() => asAudioContext(fake));
+    const unlock = createAudioUnlock({
+      createContext,
+      visibilityTarget: new EventTarget(),
+    });
+
+    await expect(unlock.ensureAudioContext()).rejects.toBe(error);
+
+    fake.resume = resume;
+    expect(await unlock.ensureAudioContext()).toBe(fake);
+    expect(createContext).toHaveBeenCalledTimes(1);
+    expect(fake.resumeCalls).toBe(1);
+  });
+
+  it("rejects when the silent buffer cannot be played", async () => {
+    const fake = createFakeAudioContext();
+    const error = new Error("no buffer");
+    fake.createBuffer = () => {
+      throw error;
+    };
+    const unlock = createAudioUnlock({
+      createContext: () => asAudioContext(fake),
+      visibilityTarget: new EventTarget(),
+    });
+
+    await expect(unlock.ensureAudioContext()).rejects.toBe(error);
+  });
+
+  it("replaces a closed context with a new one, without re-adding the listener", async () => {
+    const { fakes, createContext, addEventListenerSpy, unlock } = setup();
+    await unlock.ensureAudioContext();
+    const first = fakes[0];
+    if (first === undefined) throw new Error("context not created");
+    first.state = "closed";
+
+    const second = await unlock.ensureAudioContext();
+
+    expect(second).toBe(fakes[1]);
+    expect(second).not.toBe(first);
+    expect(createContext).toHaveBeenCalledTimes(2);
+    expect(addEventListenerSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the re-resume mark when a resume after visibilitychange rejects", async () => {
+    const { fakes, visibilityTarget, unlock } = setup();
+    await unlock.ensureAudioContext();
+    const fake = fakes[0];
+    if (fake === undefined) throw new Error("context not created");
+    const resume = fake.resume;
+    fake.resume = vi.fn(() => Promise.reject(new Error("interrupted")));
+
+    visibilityTarget.dispatchEvent(new Event("visibilitychange"));
+    await expect(unlock.ensureAudioContext()).rejects.toThrow("interrupted");
+
+    fake.resume = resume;
+    expect(fake.state).toBe("running");
+    await unlock.ensureAudioContext();
+    expect(fake.resumeCalls).toBe(2);
+  });
 });
