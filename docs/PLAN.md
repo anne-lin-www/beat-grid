@@ -333,27 +333,27 @@ TDD 循環：紅（寫失敗測試）→ 綠（最小實作）→ 重構。每�
 
 ### 階段 0：專案骨架
 
-- [ ] **T0.1** 初始化 Vite + TypeScript 專案（`package.json`、`tsconfig.json` strict、`index.html`）— 簡單 — runner
+- [x] **T0.1** 初始化 Vite + TypeScript 專案（`package.json`、`tsconfig.json` strict、`index.html`）— 簡單 — runner
   - 驗收：`npm run dev` 能開出空白頁；`npm run build` 成功；`.nvmrc` 內容為 `24`、`package.json` 有 `"engines": { "node": ">=24 <25" }`；`package-lock.json` 已 commit
-- [ ] **T0.2** `vite.config.ts` 設定 `base: "/beat-grid/"` 與 Vitest（預設 `node`，`src/ui/**` 用 `jsdom`），加入 `@vitest/coverage-v8` — 簡單 — runner
+- [x] **T0.2** `vite.config.ts` 設定 `base: "/beat-grid/"` 與 Vitest（預設 `node`，`src/ui/**` 用 `jsdom`），加入 `@vitest/coverage-v8` — 簡單 — runner
   - 驗收：`npm test` 能跑一個 placeholder 測試；`npm run test:coverage` 對 `src/core/**` 設 lines／branches／functions／statements 皆 100% 門檻，未達標時指令以非 0 結束
-- [ ] **T0.3** ESLint + Prettier 設定，加入 `lint`、`format`、`typecheck` scripts — 簡單 — runner
+- [x] **T0.3** ESLint + Prettier 設定，加入 `lint`、`format`、`typecheck` scripts — 簡單 — runner
   - 驗收：`npm run lint`、`npm run typecheck` 通過
-- [ ] **T0.4** GitHub Actions `deploy.yml` 與 `scripts/check-base-path.mjs` — 中等 — implementer
+- [x] **T0.4** GitHub Actions `deploy.yml` 與 `scripts/check-base-path.mjs` — 中等 — implementer
   - 流程：push `main` → `actions/setup-node`（`node-version-file: .nvmrc`、npm cache）→ `npm ci` → lint → typecheck → `npm run test:coverage` → build → `npm run check:base` → upload `dist` → deploy-pages
   - 驗收：PR 上只跑到 `check:base`，不部署；覆蓋率未達門檻時 CI 失敗；`check:base` 在 `dist/index.html` 中任何 `src`／`href` 資源路徑不以 `/beat-grid/` 開頭時失敗（以測試或刻意改壞 base 的方式驗證過）
 
 ### 階段 1：核心純函式（TDD）
 
-- [ ] **T1.1** `core/tracks.ts` 常數與型別 — 簡單 — runner
+- [x] **T1.1** `core/tracks.ts` 常數與型別 — 簡單 — runner
   - 驗收：測試確認 `STEP_COUNT === 16`、`TRACK_IDS` 依序為 kick／snare／hihat／clap 且長度 4
-- [ ] **T1.2** `core/pattern.ts`：`createEmptyPattern`、`toggleStep`（含越界 step 防護、不可變性）、`clearPattern`、`activeTracksAt` — 中等 — implementer
+- [x] **T1.2** `core/pattern.ts`：`createEmptyPattern`、`toggleStep`（含越界 step 防護、不可變性）、`clearPattern`、`activeTracksAt` — 中等 — implementer
   - 驗收：測試涵蓋切換兩次還原、原物件未被修改、越界（-1、16、小數）不改變、`activeTracksAt` 依 `TRACK_IDS` 順序回傳
-- [ ] **T1.3** `core/tempo.ts`：`clampBpm`、`stepDurationSeconds` — 簡單 — implementer
+- [x] **T1.3** `core/tempo.ts`：`clampBpm`、`stepDurationSeconds` — 簡單 — implementer
   - 驗收：`clampBpm` 對 59→60、201→200、120.6→121、`NaN`／`Infinity`→120 有測試；`stepDurationSeconds(120) === 0.125`
-- [ ] **T1.4** `core/sequencer-state.ts`：`initialState`、`reducer` 處理五種 action — 中等 — implementer
+- [x] **T1.4** `core/sequencer-state.ts`：`initialState`、`reducer` 處理五種 action — 中等 — implementer
   - 驗收：每個 action 都有測試；重複 play／stop 為 no-op（回傳同一物件）；`setBpm` 經 `clampBpm` 夾限
-- [ ] **T1.5** `core/scheduler.ts`：`startScheduler`、`collectDueSteps` — 困難 — architect
+- [x] **T1.5** `core/scheduler.ts`：`startScheduler`、`collectDueSteps` — 困難 — architect
   - 驗收測試要點：
     - 120 BPM、lookahead 0.1 s，一次取出正確數量的步與時間
     - 16 步後回繞到 0
@@ -363,25 +363,25 @@ TDD 循環：紅（寫失敗測試）→ 綠（最小實作）→ 重構。每�
     - 嚴重落後（`nextStepTime < now - lookahead`）：依 §3「落後與重新對齊規則」跳過 `k = ceil((now - nextStepTime) / d)` 步，被跳過的步不輸出；重新對齊後 `nextStep = (原 nextStep + k) mod 16`、`now ≤ nextStepTime < now + d`
       - 範例：120 BPM（d = 0.125），`{ nextStep: 3, nextStepTime: 1.0 }`、`now = 2.0` → `k = 8`，重新對齊為 `{ nextStep: 11, nextStepTime: 2.0 }`，接著輸出第 11 步（time 2.0）
     - 跨越 16 步邊界的重新對齊（例如 `nextStep = 14`、`k = 5` → `nextStep = 3`）
-- [ ] **T1.6** `core/playhead-queue.ts`：`enqueue`、`currentStepAt`（丟棄已過期項目）、`clearQueue` — 中等 — implementer
+- [x] **T1.6** `core/playhead-queue.ts`：`enqueue`、`currentStepAt`（丟棄已過期項目）、`clearQueue` — 中等 — implementer
   - 驗收：`now` 早於第一項時回傳 `null`；`now` 介於兩項之間時回傳較早那一項並丟棄更早的項目；`clearQueue()` 後 `currentStepAt` 回傳 `null`；輸入佇列不被修改
 
 ### 階段 2：音訊層 → 里程碑 M1
 
-- [ ] **T2.1** 測試用 fake `AudioContext`（`src/audio/testing/fake-audio-context.ts`），記錄節點、連線、`start/stop`、`disconnect`、`AudioParam` 排程呼叫 — 中等 — implementer
+- [x] **T2.1** 測試用 fake `AudioContext`（`src/audio/testing/fake-audio-context.ts`），記錄節點、連線、`start/stop`、`disconnect`、`AudioParam` 排程呼叫 — 中等 — implementer
   - 驗收：有自身的單元測試；可手動推進 `currentTime`
-- [ ] **T2.2** `audio/audio-unlock.ts`：`ensureAudioContext()` 延遲建立、`resume()`、iOS 無聲 buffer 解鎖、冪等 — 困難 — architect
+- [x] **T2.2** `audio/audio-unlock.ts`：`ensureAudioContext()` 延遲建立、`resume()`、iOS 無聲 buffer 解鎖、冪等 — 困難 — architect
   - 驗收：
     - 頁面載入時不建立 `AudioContext`
     - **解鎖只綁定 `click` 事件**；程式碼與測試中不出現 `pointerdown`、`touchstart`、`touchend` 監聽（測試以 spy `addEventListener` 驗證）
     - 建立 context、`resume()`、無聲 buffer `start()` 在第一個 `await` 前同步完成
     - 重複呼叫回傳同一個 context，不重複建立
     - `suspended` 狀態下再次 click 會呼叫 `resume()`
-- [ ] **T2.3** `audio/voices/noise.ts` + `voice.ts` 介面 + `audio/master.ts` master gain — 中等 — implementer
+- [x] **T2.3** `audio/voices/noise.ts` + `voice.ts` 介面 + `audio/master.ts` master gain — 中等 — implementer
   - 驗收：同一個 context 呼叫兩次 `getNoiseBuffer` 回傳同一個 buffer；master gain 預設 0.8 並接到 `ctx.destination`
-- [ ] **T2.4** `audio/voices/kick.ts`（**範本**，確立 §6 慣例）— 困難 — architect
+- [x] **T2.4** `audio/voices/kick.ts`（**範本**，確立 §6 慣例）— 困難 — architect
   - 驗收：以 fake ctx 驗證 oscillator 頻率下滑排程、增益 ramp 到 0.001、`start(time)`／`stop` 時間正確、只連到傳入的 destination；在 PR 中說明其他 voice 應沿用的寫法
-- [ ] **T2.8** `audio/transport.ts`：`createTransport`、`start()`／`stop()`，`setTimeout` 喚醒 + `collectDueSteps` + `voice.trigger` + `onScheduled` 回報 — 困難 — architect（提前到 M1 之前）
+- [x] **T2.8** `audio/transport.ts`：`createTransport`、`start()`／`stop()`，`setTimeout` 喚醒 + `collectDueSteps` + `voice.trigger` + `onScheduled` 回報 — 困難 — architect（提前到 M1 之前）
   - 驗收（fake timers + fake ctx）：
     - 每次 `start()` 建立新的 session `GainNode` 並接到 master；voice 接到 session gain
     - `stop()` 後：計時器被清除（`vi.getTimerCount() === 0`）、session gain 被 `disconnect()`、之後推進時間不再呼叫任何 voice
