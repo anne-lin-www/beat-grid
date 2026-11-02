@@ -353,7 +353,7 @@ TDD 循環：紅（寫失敗測試）→ 綠（最小實作）→ 重構。每�
   - 驗收：`clampBpm` 對 59→60、201→200、120.6→121、`NaN`／`Infinity`→120 有測試；`stepDurationSeconds(120) === 0.125`
 - [x] **T1.4** `core/sequencer-state.ts`：`initialState`、`reducer` 處理五種 action — 中等 — implementer
   - 驗收：每個 action 都有測試；重複 play／stop 為 no-op（回傳同一物件）；`setBpm` 經 `clampBpm` 夾限
-- [ ] **T1.5** `core/scheduler.ts`：`startScheduler`、`collectDueSteps` — 困難 — architect
+- [x] **T1.5** `core/scheduler.ts`：`startScheduler`、`collectDueSteps` — 困難 — architect
   - 驗收測試要點：
     - 120 BPM、lookahead 0.1 s，一次取出正確數量的步與時間
     - 16 步後回繞到 0
