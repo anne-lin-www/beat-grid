@@ -1,5 +1,5 @@
 import { activeTracksAt, type Pattern } from "./pattern";
-import { stepDurationSeconds } from "./tempo";
+import { clampBpm, stepDurationSeconds } from "./tempo";
 import { STEP_COUNT, type TrackId } from "./tracks";
 
 export const LOOKAHEAD_SECONDS = 0.1;
@@ -60,7 +60,9 @@ export function collectDueSteps(
   input: { now: number; lookahead: number; bpm: number; pattern: Pattern },
 ): { state: SchedulerState; due: ScheduledStep[] } {
   const { now, lookahead, bpm, pattern } = input;
-  const stepDuration = stepDurationSeconds(bpm);
+  // Clamped defensively: a non-positive step duration would never advance
+  // nextStepTime and the collection loop below would not terminate.
+  const stepDuration = stepDurationSeconds(clampBpm(bpm));
   const horizon = now + lookahead;
   const due: ScheduledStep[] = [];
   let { nextStep, nextStepTime } = realign(state, now, lookahead, stepDuration);

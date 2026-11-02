@@ -251,3 +251,20 @@ describe("collectDueSteps re-alignment floating-point boundaries", () => {
     expect(result.state.nextStepTime).toBeCloseTo(2.125, 9);
   });
 });
+
+describe("collectDueSteps BPM guard", () => {
+  it.each([
+    [0, 60],
+    [-120, 60],
+    [500, 200],
+    [Number.NaN, 120],
+  ])(
+    "clamps bpm %s like clampBpm (→ %s) so it always terminates",
+    (bpm, safe) => {
+      const result = collectDueSteps(startScheduler(0), input(0, bpm));
+      const expected = collectDueSteps(startScheduler(0), input(0, safe));
+
+      expect(result).toEqual(expected);
+    },
+  );
+});
