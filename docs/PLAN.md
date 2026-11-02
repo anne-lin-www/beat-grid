@@ -368,7 +368,7 @@ TDD 循環：紅（寫失敗測試）→ 綠（最小實作）→ 重構。每�
 
 ### 階段 2：音訊層 → 里程碑 M1
 
-- [ ] **T2.1** 測試用 fake `AudioContext`（`src/audio/testing/fake-audio-context.ts`），記錄節點、連線、`start/stop`、`disconnect`、`AudioParam` 排程呼叫 — 中等 — implementer
+- [x] **T2.1** 測試用 fake `AudioContext`（`src/audio/testing/fake-audio-context.ts`），記錄節點、連線、`start/stop`、`disconnect`、`AudioParam` 排程呼叫 — 中等 — implementer
   - 驗收：有自身的單元測試；可手動推進 `currentTime`
 - [ ] **T2.2** `audio/audio-unlock.ts`：`ensureAudioContext()` 延遲建立、`resume()`、iOS 無聲 buffer 解鎖、冪等 — 困難 — architect
   - 驗收：
