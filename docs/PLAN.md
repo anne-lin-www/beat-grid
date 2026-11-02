@@ -335,7 +335,7 @@ TDD 循環：紅（寫失敗測試）→ 綠（最小實作）→ 重構。每�
 
 - [x] **T0.1** 初始化 Vite + TypeScript 專案（`package.json`、`tsconfig.json` strict、`index.html`）— 簡單 — runner
   - 驗收：`npm run dev` 能開出空白頁；`npm run build` 成功；`.nvmrc` 內容為 `24`、`package.json` 有 `"engines": { "node": ">=24 <25" }`；`package-lock.json` 已 commit
-- [ ] **T0.2** `vite.config.ts` 設定 `base: "/beat-grid/"` 與 Vitest（預設 `node`，`src/ui/**` 用 `jsdom`），加入 `@vitest/coverage-v8` — 簡單 — runner
+- [x] **T0.2** `vite.config.ts` 設定 `base: "/beat-grid/"` 與 Vitest（預設 `node`，`src/ui/**` 用 `jsdom`），加入 `@vitest/coverage-v8` — 簡單 — runner
   - 驗收：`npm test` 能跑一個 placeholder 測試；`npm run test:coverage` 對 `src/core/**` 設 lines／branches／functions／statements 皆 100% 門檻，未達標時指令以非 0 結束
 - [ ] **T0.3** ESLint + Prettier 設定，加入 `lint`、`format`、`typecheck` scripts — 簡單 — runner
   - 驗收：`npm run lint`、`npm run typecheck` 通過
