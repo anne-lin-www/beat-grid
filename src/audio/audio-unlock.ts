@@ -90,3 +90,34 @@ export function createAudioUnlock(deps: AudioUnlockDeps): AudioUnlock {
 
   return { ensureAudioContext };
 }
+
+/** Browser globals that may hold the AudioContext constructor (old Safari: webkit-prefixed). */
+interface AudioContextGlobals {
+  readonly AudioContext?: typeof AudioContext;
+  readonly webkitAudioContext?: typeof AudioContext;
+}
+
+function createBrowserAudioContext(): AudioContext {
+  // Read lazily, on the first click, never at import time.
+  const scope = globalThis as AudioContextGlobals;
+  const AudioContextConstructor =
+    scope.AudioContext ?? scope.webkitAudioContext;
+  if (AudioContextConstructor === undefined) {
+    throw new Error("The Web Audio API is not supported in this browser.");
+  }
+  return new AudioContextConstructor();
+}
+
+let defaultUnlock: AudioUnlock | null = null;
+
+/**
+ * App-wide unlock wired to the real browser. Only `app/main.ts` should use
+ * it; call it synchronously from a `click` handler, then `await` the result.
+ */
+export function ensureAudioContext(): Promise<AudioContext> {
+  defaultUnlock ??= createAudioUnlock({
+    createContext: createBrowserAudioContext,
+    visibilityTarget: document,
+  });
+  return defaultUnlock.ensureAudioContext();
+}

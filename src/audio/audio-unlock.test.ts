@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createAudioUnlock } from "./audio-unlock";
 import {
   asAudioContext,
@@ -196,5 +196,79 @@ describe("createAudioUnlock", () => {
     expect(fake.state).toBe("running");
     await unlock.ensureAudioContext();
     expect(fake.resumeCalls).toBe(2);
+  });
+});
+
+function stubBrowser(constructorName: "AudioContext" | "webkitAudioContext") {
+  const fake = createFakeAudioContext();
+  const AudioContextStub = vi.fn(function () {
+    return asAudioContext(fake);
+  });
+  const documentStub = new EventTarget();
+  const addEventListenerSpy = vi.spyOn(documentStub, "addEventListener");
+  vi.stubGlobal("AudioContext", undefined);
+  vi.stubGlobal("webkitAudioContext", undefined);
+  vi.stubGlobal(constructorName, AudioContextStub);
+  vi.stubGlobal("document", documentStub);
+  return { fake, AudioContextStub, documentStub, addEventListenerSpy };
+}
+
+async function importFresh() {
+  return import("./audio-unlock");
+}
+
+describe("default ensureAudioContext", () => {
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("does not construct an AudioContext or touch document at import time", async () => {
+    const { AudioContextStub, addEventListenerSpy } =
+      stubBrowser("AudioContext");
+    await importFresh();
+    expect(AudioContextStub).not.toHaveBeenCalled();
+    expect(addEventListenerSpy).not.toHaveBeenCalled();
+  });
+
+  it("creates the context with the global AudioContext and returns the same one each time", async () => {
+    const { fake, AudioContextStub } = stubBrowser("AudioContext");
+    const { ensureAudioContext } = await importFresh();
+
+    expect(await ensureAudioContext()).toBe(fake);
+    expect(await ensureAudioContext()).toBe(fake);
+    expect(AudioContextStub).toHaveBeenCalledTimes(1);
+    expect(fake.resumeCalls).toBe(1);
+  });
+
+  it("falls back to webkitAudioContext on older Safari", async () => {
+    const { fake, AudioContextStub } = stubBrowser("webkitAudioContext");
+    const { ensureAudioContext } = await importFresh();
+
+    expect(await ensureAudioContext()).toBe(fake);
+    expect(AudioContextStub).toHaveBeenCalledTimes(1);
+  });
+
+  it("binds only visibilitychange on document, never touch or pointer events", async () => {
+    const { addEventListenerSpy } = stubBrowser("AudioContext");
+    const { ensureAudioContext } = await importFresh();
+    await ensureAudioContext();
+
+    const eventTypes = addEventListenerSpy.mock.calls.map(([type]) => type);
+    expect(eventTypes).toEqual(["visibilitychange"]);
+    for (const forbidden of FORBIDDEN_UNLOCK_EVENTS) {
+      expect(eventTypes).not.toContain(forbidden);
+    }
+  });
+
+  it("rejects when the Web Audio API is unavailable", async () => {
+    stubBrowser("AudioContext");
+    vi.stubGlobal("AudioContext", undefined);
+    const { ensureAudioContext } = await importFresh();
+
+    await expect(ensureAudioContext()).rejects.toThrow(/Web Audio API/);
   });
 });
